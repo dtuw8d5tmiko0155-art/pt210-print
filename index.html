@@ -385,8 +385,8 @@
                     parts.push(qrCmd);
                 }
 
-                // ESC J n コマンドで正確に 1cm (10mm = 80ドット) 分の紙送りを行う
-                // 0x1B, 0x4A, 0x50 (80ドット)
+                // 印刷物のすぐ下にちょうど10mm (80ドット) の空白領域を追加して停止する
+                // ESC J n (n = 80ドット / 約10mm)
                 parts.push(new Uint8Array([0x1B, 0x4A, 80]));
 
                 const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
