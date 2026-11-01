@@ -308,7 +308,8 @@ THANK YOU FOR YOUR VISIT!</textarea>
                 }
 
                 log(`データを送信中 (合計: ${payload.length} バイト)...`);
-                const CHUNK_SIZE = 64;
+                // プリンターのバッファ溢れを防ぐため、チャンクサイズを20バイトに縮小し、ウェイトを30msに延長
+                const CHUNK_SIZE = 20;
                 for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
                     const chunk = payload.slice(i, i + CHUNK_SIZE);
                     if (targetCharacteristic.properties.writeWithoutResponse) {
@@ -316,8 +317,7 @@ THANK YOU FOR YOUR VISIT!</textarea>
                     } else {
                         await targetCharacteristic.writeValue(chunk);
                     }
-                    // 画像データのパケット欠損を防ぐためウェイトを20msに延長
-                    await new Promise(resolve => setTimeout(resolve, 20));
+                    await new Promise(resolve => setTimeout(resolve, 30));
                 }
 
                 log('印刷命令の送信が完了しました！', 'success');
