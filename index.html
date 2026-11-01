@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>58mm Thermal Printer Web Print</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen py-6 px-4">
+
+    <div class="max-w-md mx-auto space-y-4">
+        
+        <!-- ヘッダー -->
+        <header class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xl shadow-md">
+                    <i class="fa-solid fa-print"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Web Bluetooth レシート印刷</h1>
+                    <p class="text-xs text-slate-500">GOOJPRT PT-210 / 58mm プリンター対応</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- セキュリティ/iFrame 警告表示エリア (制限検知時に表示) -->
+        <div id="iframeWarning" class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl shadow-sm text-xs text-amber-900 space-y-2">
+            <div class="flex items-center space-x-2 font-bold text-amber-700">
+                <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                <span>プレビュー環境（iFrame）の制限について</span>
+            </div>
+            <p>
+                セキュリティ仕様により、Web Bluetooth機能はブラウザのプレビュー枠内では実行できません。
+                以下のボタンからファイルをダウンロードし、Chrome等のブラウザで直接ファイルを開いてご使用ください。
+            </p>
+            <button id="downloadBannerBtn" class="w-full mt-1 py-2 px-3 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold rounded-lg transition flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                <span>HTMLファイルを保存して直接開く</span>
+            </button>
+        </div>
+
+        <!-- メインフォーム -->
+        <main class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            
+            <!-- タイトル入力 -->
+            <div>
+                <label for="titleText" class="block text-xs font-bold text-slate-700 mb-1">
+                    <i class="fa-solid fa-heading mr-1"></i> タイトル (英数字)
+                </label>
+                <input type="text" id="titleText" value="GOOJPRT PT-210 DEMO" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono">
+            </div>
+
+            <!-- 本文テキスト入力 -->
+            <div>
+                <label for="bodyText" class="block text-xs font-bold text-slate-700 mb-1">
+                    <i class="fa-solid fa-align-left mr-1"></i> 印刷メッセージ (英数字 / ESC-POS)
+                </label>
+                <textarea id="bodyText" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono">RECEIPT #10042
+DATE: 2026-11-01
+THANK YOU FOR YOUR VISIT!</textarea>
+            </div>
+
+            <!-- QRコード画像アップロード -->
+            <div>
+                <label for="imageInput" class="block text-xs font-bold text-slate-700 mb-1">
+                    <i class="fa-solid fa-qrcode mr-1"></i> QRコード画像アップロード
+                </label>
+                <input type="file" id="imageInput" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+            </div>
+
+            <!-- モノクロ印字プレビュー -->
+            <div id="previewContainer" class="hidden border border-dashed border-slate-300 p-3 rounded-xl bg-slate-50 text-center space-y-2">
+                <span class="text-[11px] font-bold text-slate-500 block">モノクロ化プレビュー (384px)</span>
+                <canvas id="previewCanvas" class="mx-auto border border-slate-200 bg-white shadow-sm max-w-full h-auto rounded"></canvas>
+            </div>
+
+            <!-- 印刷実行ボタン -->
+            <button id="printBtn" type="button" class="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                <i class="fa-brands fa-bluetooth text-lg"></i>
+                <span>Bluetooth プリンターに接続して印刷</span>
+            </button>
+
+            <!-- HTMLファイル直接取得ボタン -->
+            <button id="downloadFileBtn" type="button" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs rounded-lg transition flex items-center justify-center space-x-1 border border-slate-200">
+                <i class="fa-solid fa-download"></i>
+                <span>スタンドアロンHTMLファイルを保存</span>
+            </button>
+
+        </main>
+
+        <!-- ログ＆ステータス表示 -->
+        <div class="bg-slate-900 text-slate-200 p-4 rounded-2xl text-xs font-mono shadow-md">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+                <span class="font-bold text-slate-400"><i class="fa-solid fa-terminal mr-1"></i> 通信ログ</span>
+                <button id="clearLogBtn" class="text-slate-500 hover:text-slate-300 text-[10px]">クリア</button>
+            </div>
+            <div id="logOutput" class="h-28 overflow-y-auto space-y-1 text-[11px] leading-relaxed">
+                <div class="text-slate-500">> 待機中... 印刷ボタンを押してください。</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 画像変換用非表示Canvas -->
+    <canvas id="hiddenCanvas" class="hidden"></canvas>
+
+    <script>
+        // プリンターで一般的に使用されるSPP / 固有BluetoothサービスUUID群
+        const KNOWN_SERVICES = [
+            '00001101-0000-1000-8000-00805f9b34fb', // 標準 Serial Port Profile (SPP)
+            '0000ff00-0000-1000-8000-00805f9b34fb', // 汎用中国製サーマルプリンター
+            '0000fee7-0000-1000-8000-00805f9b34fb', // 一部GOOJPRT / MPTシリーズ
+            '0000af00-0000-1000-8000-00805f9b34fb', // その他ポータブルプリンター
+            'e7810a71-73ae-499d-8c15-faa9aef0c3f2'
+        ];
+
+        let loadedImage = null;
+
+        // ログ出力関数
+        function log(message, type = 'info') {
+            const logOutput = document.getElementById('logOutput');
+            const entry = document.createElement('div');
+            const time = new Date().toLocaleTimeString('ja-JP');
+            
+            if (type === 'error') entry.className = 'text-red-400 font-bold';
+            else if (type === 'success') entry.className = 'text-emerald-400 font-bold';
+            else if (type === 'warn') entry.className = 'text-amber-400';
+            else entry.className = 'text-slate-300';
+
+            entry.textContent = `[${time}] ${message}`;
+            logOutput.appendChild(entry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        // iFrame環境の制限検知
+        function checkEnvironment() {
+            if (window.self !== window.top) {
+                document.getElementById('iframeWarning').classList.remove('hidden');
+                log('注意: プレビュー画面(iFrame)でのWeb Bluetooth実行はブラウザ仕様でブロックされています。HTMLファイルを保存して開いてください。', 'warn');
+            }
+        }
+
+        // 画像選択イベント＆モノクロプレビューレンダリング
+        document.getElementById('imageInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => {
+                    loadedImage = img;
+                    renderMonochromePreview(img);
+                    document.getElementById('previewContainer').classList.remove('hidden');
+                    log('QRコード画像を読み込みました。', 'success');
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // モノクロ二値化プレビューの描画
+        function renderMonochromePreview(img) {
+            const canvas = document.getElementById('previewCanvas');
+            const ctx = canvas.getContext('2d');
+            const targetWidth = 384; 
+            const scale = targetWidth / img.width;
+            const targetHeight = Math.floor(img.height * scale);
+
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+            const pixels = imgData.data;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                const brightness = pixels[i] * 0.299 + pixels[i + 1] * 0.587 + pixels[i + 2] * 0.114;
+                const v = brightness < 128 ? 0 : 255;
+                pixels[i] = v;     
+                pixels[i + 1] = v; 
+                pixels[i + 2] = v; 
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        // 画像データを ESC/POS ラスタコマンドへ変換
+        function convertImageToEscPos(img) {
+            const canvas = document.getElementById('hiddenCanvas');
+            const ctx = canvas.getContext('2d');
+            const targetWidth = 384;
+            const scale = targetWidth / img.width;
+            const targetHeight = Math.floor(img.height * scale);
+
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+            const pixels = imgData.data;
+
+            const widthBytes = Math.ceil(targetWidth / 8);
+            const imageBytes = new Uint8Array(widthBytes * targetHeight);
+
+            for (let y = 0; y < targetHeight; y++) {
+                for (let x = 0; x < targetWidth; x++) {
+                    const idx = (y * targetWidth + x) * 4;
+                    const brightness = pixels[idx] * 0.299 + pixels[idx + 1] * 0.587 + pixels[idx + 2] * 0.114;
+                    if (brightness < 128) { 
+                        const byteIdx = y * widthBytes + Math.floor(x / 8);
+                        const bitIdx = 7 - (x % 8);
+                        imageBytes[byteIdx] |= (1 << bitIdx);
+                    }
+                }
+            }
+
+            const xL = widthBytes % 256;
+            const xH = Math.floor(widthBytes / 256);
+            const yL = targetHeight % 256;
+            const yH = Math.floor(targetHeight / 256);
+
+            const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
+            const combined = new Uint8Array(header.length + imageBytes.length);
+            combined.set(header);
+            combined.set(imageBytes, header.length);
+
+            return combined;
+        }
+
+        // HTMLファイルダウンロード処理
+        function downloadStandaloneHtml() {
+            const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pt210_web_printer.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            log('HTMLファイルを保存しました。', 'success');
+        }
+
+        document.getElementById('downloadFileBtn').addEventListener('click', downloadStandaloneHtml);
+        document.getElementById('downloadBannerBtn').addEventListener('click', downloadStandaloneHtml);
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            document.getElementById('logOutput').innerHTML = '<div class="text-slate-500">> ログをクリアしました。</div>';
+        });
+
+        // Bluetooth印刷処理実行
+        document.getElementById('printBtn').addEventListener('click', async () => {
+            if (window.self !== window.top) {
+                alert("【実行制限エラー】\n\niFrame画面内ではBluetooth通信がブロックされています。\n「スタンドアロンHTMLファイルを保存」を押してローカルで開いて実行してください。");
+                return;
+            }
+
+            if (!navigator.bluetooth) {
+                alert("お使いのブラウザはWeb Bluetoothに対応していません。Google Chrome等を使用してください。");
+                return;
+            }
+
+            const title = document.getElementById('titleText').value;
+            const body = document.getElementById('bodyText').value;
+
+            try {
+                log('Bluetoothデバイスをスキャン中...');
+                
+                // すべてのデバイスを表示して手動選択できるように変更
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: KNOWN_SERVICES
+                });
+
+                log(`デバイス「${device.name || 'Printer'}」を選択しました。接続中...`);
+                const server = await device.gatt.connect();
+
+                let targetCharacteristic = null;
+                for (const serviceUuid of KNOWN_SERVICES) {
+                    try {
+                        const service = await server.getPrimaryService(serviceUuid);
+                        const characteristics = await service.getCharacteristics();
+                        for (const char of characteristics) {
+                            if (char.properties.write || char.properties.writeWithoutResponse) {
+                                targetCharacteristic = char;
+                                break;
+                            }
+                        }
+                        if (targetCharacteristic) break;
+                    } catch (e) {
+                        // 次のUUIDの探索を継続
+                    }
+                }
+
+                if (!targetCharacteristic) {
+                    throw new Error("書き込み可能なBluetoothキャラクタリスティックが見つかりませんでした。");
+                }
+
+                log('通信チャンネル接続成功。印字データ構築中...');
+
+                const encoder = new TextEncoder();
+                const parts = [];
+
+                parts.push(new Uint8Array([0x1B, 0x40, 0x1B, 0x61, 0x01]));
+                parts.push(new Uint8Array([0x1D, 0x21, 0x11]));
+                parts.push(encoder.encode(title + "\n"));
+
+                parts.push(new Uint8Array([0x1D, 0x21, 0x00]));
+                parts.push(encoder.encode("--------------------------------\n" + body + "\n\n"));
+
+                if (loadedImage) {
+                    log('QRコード画像をラスタコマンドに変換中...');
+                    const imgCmd = convertImageToEscPos(loadedImage);
+                    parts.push(imgCmd);
+                }
+
+                parts.push(new Uint8Array([0x0A, 0x0A, 0x0A, 0x0A]));
+
+                const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
+                const payload = new Uint8Array(totalLength);
+                let offset = 0;
+                for (const part of parts) {
+                    payload.set(part, offset);
+                    offset += part.length;
+                }
+
+                log(`データを送信中 (合計: ${payload.length} バイト)...`);
+                const CHUNK_SIZE = 64;
+                for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
+                    const chunk = payload.slice(i, i + CHUNK_SIZE);
+                    if (targetCharacteristic.properties.writeWithoutResponse) {
+                        await targetCharacteristic.writeValueWithoutResponse(chunk);
+                    } else {
+                        await targetCharacteristic.writeValue(chunk);
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 10));
+                }
+
+                log('印刷命令の送信が完了しました！', 'success');
+
+            } catch (error) {
+                console.error(error);
+                log(`エラー: ${error.message}`, 'error');
+            }
+        });
+
+        checkEnvironment();
+    </script>
+
+</body>
+</html>
