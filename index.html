@@ -292,6 +292,26 @@
             return combined;
         }
 
+        // 20mm (160ドット) 分の白い空白のラスタデータを直接生成する関数
+        function createBottomMarginEscPos() {
+            const width = 384;
+            const height = 160; // 20mm分 (20mm * 8ドット = 160ドット)
+            const widthBytes = 48; // 384 / 8
+            const imageBytes = new Uint8Array(widthBytes * height); // すべて0 (白)
+
+            const xL = widthBytes & 0xFF;
+            const xH = (widthBytes >> 8) & 0xFF;
+            const yL = height & 0xFF;
+            const yH = (height >> 8) & 0xFF;
+
+            const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
+            const combined = new Uint8Array(header.length + imageBytes.length);
+            combined.set(header);
+            combined.set(imageBytes, header.length);
+
+            return combined;
+        }
+
         function downloadStandaloneHtml() {
             const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
             const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
@@ -385,8 +405,9 @@
                     parts.push(qrCmd);
                 }
 
-                // ESC J 160 : 印刷終了直後に正確に20mm（160ドット）の底面余白をつけて停止
-                parts.push(new Uint8Array([0x1B, 0x4A, 160]));
+                // 最後に必ず20mm (160ドット)分の白い空白画像データを結合して余白を確保する
+                log('20mmの余白データを追加中...');
+                parts.push(createBottomMarginEscPos());
 
                 const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
                 const payload = new Uint8Array(totalLength);
