@@ -385,7 +385,8 @@
                     parts.push(qrCmd);
                 }
 
-                parts.push(new Uint8Array([0x0A, 0x0A, 0x0A, 0x0A])); // 改行紙送り
+                // 上下の余白がちょうど同じくらいになるよう、適正な改行（紙送り）を送り出す
+                parts.push(new Uint8Array([0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A]));
 
                 const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
                 const payload = new Uint8Array(totalLength);
