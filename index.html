@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>58mm Thermal Printer Web Print</title>
-    <!-- Tailwind CSS -->
+    <title>58mm Thermal Printer Web Print (日本語対応)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen py-6 px-4">
 
     <div class="max-w-md mx-auto space-y-4">
         
-        <!-- ヘッダー -->
         <header class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xl shadow-md">
@@ -21,12 +18,11 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-slate-900 leading-tight">Web Bluetooth レシート印刷</h1>
-                    <p class="text-xs text-slate-500">GOOJPRT PT-210 / 58mm プリンター対応</p>
+                    <p class="text-xs text-slate-500">GOOJPRT PT-210 / 58mm プリンター対応 (日本語完全対応)</p>
                 </div>
             </div>
         </header>
 
-        <!-- セキュリティ/iFrame 警告表示エリア (制限検知時に表示) -->
         <div id="iframeWarning" class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl shadow-sm text-xs text-amber-900 space-y-2">
             <div class="flex items-center space-x-2 font-bold text-amber-700">
                 <i class="fa-solid fa-triangle-exclamation text-sm"></i>
@@ -42,27 +38,19 @@
             </button>
         </div>
 
-        <!-- メインフォーム -->
         <main class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             <div>
                 <label for="titleText" class="block text-xs font-bold text-slate-700 mb-1">
-                    <i class="fa-solid fa-store mr-1"></i> 店舗名・タイトル (日本語対応)
+                    <i class="fa-solid fa-heading mr-1"></i> タイトル (日本語OK)
                 </label>
-                <input type="text" id="titleText" value="喫茶 たくみ Cafe" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-sans">
+                <input type="text" id="titleText" value="" placeholder="例: 店舗名・タイトル" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-sans">
             </div>
 
             <div>
                 <label for="bodyText" class="block text-xs font-bold text-slate-700 mb-1">
-                    <i class="fa-solid fa-receipt mr-1"></i> レシート内容・メッセージ (日本語対応)
+                    <i class="fa-solid fa-align-left mr-1"></i> 印刷メッセージ (日本語OK)
                 </label>
-                <textarea id="bodyText" rows="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-mono">--------------------------------
-ブレンドコーヒー        ¥450
-自家製プリン            ¥500
-小計                   ¥950
-(内消費税10%           ¥86)
---------------------------------
-ご来店ありがとうございます！
-またのお越しをお待ちしております。</textarea>
+                <textarea id="bodyText" rows="4" placeholder="例: ご来店ありがとうございます！&#10;領収書 / レシート本文" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-sans"></textarea>
             </div>
 
             <div>
@@ -72,8 +60,8 @@
                 <input type="file" id="imageInput" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
             </div>
 
-            <div id="previewContainer" class="border border-dashed border-slate-300 p-3 rounded-xl bg-slate-50 text-center space-y-2">
-                <span class="text-[11px] font-bold text-slate-500 block">印刷プレビュー (384px 画像化)</span>
+            <div id="previewContainer" class="hidden border border-dashed border-slate-300 p-3 rounded-xl bg-slate-50 text-center space-y-2">
+                <span class="text-[11px] font-bold text-slate-500 block">QRコード プレビュー</span>
                 <canvas id="previewCanvas" class="mx-auto border border-slate-200 bg-white shadow-sm max-w-full h-auto rounded"></canvas>
             </div>
 
@@ -82,16 +70,12 @@
                 <span>Bluetooth プリンターに接続して印刷</span>
             </button>
 
-            <!-- HTMLファイル直接取得ボタン -->
-            <button id="downloadFileBtn" type="button" 
-                class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs rounded-lg transition flex items-center justify-center space-x-1 border border-slate-200">
+            <button id="downloadFileBtn" type="button" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs rounded-lg transition flex items-center justify-center space-x-1 border border-slate-200">
                 <i class="fa-solid fa-download"></i>
                 <span>スタンドアロンHTMLファイルを保存</span>
             </button>
-
         </main>
 
-        <!-- ログ＆ステータス表示 -->
         <div class="bg-slate-900 text-slate-200 p-4 rounded-2xl text-xs font-mono shadow-md">
             <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
                 <span class="font-bold text-slate-400"><i class="fa-solid fa-terminal mr-1"></i> 通信ログ</span>
@@ -104,7 +88,6 @@
 
     </div>
 
-    <!-- 画像変換用非表示Canvas -->
     <canvas id="hiddenCanvas" class="hidden"></canvas>
 
     <script>
@@ -142,14 +125,19 @@
 
         document.getElementById('imageInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (!file) return;
+            if (!file) {
+                loadedImage = null;
+                document.getElementById('previewContainer').classList.add('hidden');
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = (evt) => {
                 const img = new Image();
                 img.onload = () => {
                     loadedImage = img;
-                    updateLayoutPreview();
+                    renderMonochromePreview(img);
+                    document.getElementById('previewContainer').classList.remove('hidden');
                     log('QRコード画像を読み込みました。', 'success');
                 };
                 img.src = evt.target.result;
@@ -157,107 +145,133 @@
             reader.readAsDataURL(file);
         });
 
-        document.getElementById('titleText').addEventListener('input', updateLayoutPreview);
-        document.getElementById('bodyText').addEventListener('input', updateLayoutPreview);
-
-        // 日本語テキストとQR画像をまとめて384pxのCanvas画像に合成描画する関数
-        function generateReceiptCanvas() {
-            const canvas = document.createElement('canvas');
+        function renderMonochromePreview(img) {
+            const canvas = document.getElementById('previewCanvas');
             const ctx = canvas.getContext('2d');
-            const targetWidth = 384;
-            
-            const title = document.getElementById('titleText').value || '';
-            const body = document.getElementById('bodyText').value || '';
-
-            // 高さ計算用の仮レイアウト処理
-            ctx.font = 'bold 26px sans-serif';
-            let currentY = 30;
-            
-            const lines = body.split('\n');
-            ctx.font = '20px monospace';
-            const bodyHeight = lines.length * 28;
-            
-            let totalHeight = currentY + 40 + bodyHeight + 20;
-
-            let qrHeight = 0;
-            if (loadedImage) {
-                const qrScale = targetWidth / loadedImage.width;
-                qrHeight = Math.floor(loadedImage.height * qrScale);
-                totalHeight += qrHeight + 20;
-            }
+            const targetWidth = 384; 
+            const scale = targetWidth / img.width;
+            const targetHeight = Math.floor(img.height * scale);
 
             canvas.width = targetWidth;
-            canvas.height = totalHeight;
+            canvas.height = targetHeight;
 
-            // 背景を完全な白に
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, targetWidth, totalHeight);
-
-            // 文字描画設定
-            ctx.fillStyle = '#000000';
-
-            // 1. タイトル描画 (中央揃え・太字)
-            ctx.font = 'bold 26px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(title, targetWidth / 2, currentY);
-            currentY += 40;
-
-            // 2. 本文テキスト描画 (左揃え・固定幅フォント)
-            ctx.font = '20px "Courier New", monospace';
-            ctx.textAlign = 'left';
-            for (let line of lines) {
-                ctx.fillText(line, 10, currentY);
-                currentY += 28;
-            }
-            currentY += 10;
-
-            // 3. QRコード画像描画
-            if (loadedImage && qrHeight > 0) {
-                ctx.drawImage(loadedImage, 0, currentY, targetWidth, qrHeight);
-            }
-
-            // 完全にくっきりした白黒（2値化）処理
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const pixels = imgData.data;
-            for (let i = 0; i < pixels.length; i += 4) {
-                const brightness = pixels[i] * 0.299 + pixels[i + 1] * 0.587 + pixels[i + 2] * 0.114;
-                const v = brightness < 180 ? 0 : 255; // 二値化閾値
-                pixels[i] = v;
-                pixels[i + 1] = v;
-                pixels[i + 2] = v;
-            }
-            ctx.putImageData(imgData, 0, 0);
-
-            return canvas;
-        }
-
-        // プレビュー画面に反映
-        function updateLayoutPreview() {
-            const receiptCanvas = generateReceiptCanvas();
-            const previewCanvas = document.getElementById('previewCanvas');
-            const pCtx = previewCanvas.getContext('2d');
-
-            previewCanvas.width = receiptCanvas.width;
-            previewCanvas.height = receiptCanvas.height;
-            pCtx.drawImage(receiptCanvas, 0, 0);
-        }
-
-        // Canvas全体をラスタビットイメージ（GS v 0）コマンドに変換
-        function convertCanvasToEscPos(canvas) {
-            const ctx = canvas.getContext('2d');
-            const targetWidth = canvas.width;
-            const targetHeight = canvas.height;
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+            ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
             const imgData = ctx.getImageData(0, 0, targetWidth, targetHeight);
             const pixels = imgData.data;
 
-            const widthBytes = 48; // 384 / 8
-            const imageBytes = new Uint8Array(widthBytes * targetHeight);
+            for (let i = 0; i < pixels.length; i += 4) {
+                const brightness = pixels[i] * 0.299 + pixels[i + 1] * 0.587 + pixels[i + 2] * 0.114;
+                const v = brightness < 128 ? 0 : 255;
+                pixels[i] = v;     
+                pixels[i + 1] = v; 
+                pixels[i + 2] = v; 
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
 
-            for (let y = 0; y < targetHeight; y++) {
-                for (let x = 0; x < targetWidth; x++) {
-                    const pIdx = (y * targetWidth + x) * 4;
-                    if (pixels[pIdx] < 128) { // 黒ピクセル
+        function renderTextToCanvas(title, body) {
+            const width = 384;
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCanvas.width = width;
+            tempCanvas.height = 2000;
+
+            let y = 10;
+
+            if (title.trim() !== "") {
+                tempCtx.font = "bold 28px 'sans-serif', 'Hiragino Sans', 'Meiryo'";
+                tempCtx.textAlign = "center";
+                tempCtx.fillStyle = "#000000";
+
+                const titleLines = wrapText(tempCtx, title, width - 20);
+                for (const line of titleLines) {
+                    tempCtx.fillText(line, width / 2, y + 28);
+                    y += 36;
+                }
+                y += 10;
+
+                tempCtx.beginPath();
+                tempCtx.setLineDash([4, 4]);
+                tempCtx.moveTo(10, y);
+                tempCtx.lineTo(width - 10, y);
+                tempCtx.strokeStyle = "#000000";
+                tempCtx.lineWidth = 2;
+                tempCtx.stroke();
+                tempCtx.setLineDash([]);
+                y += 20;
+            }
+
+            if (body.trim() !== "") {
+                tempCtx.font = "22px 'sans-serif', 'Hiragino Sans', 'Meiryo'";
+                tempCtx.textAlign = "left";
+                tempCtx.fillStyle = "#000000";
+
+                const bodyParagraphs = body.split('\n');
+                for (const para of bodyParagraphs) {
+                    if (para.trim() === '') {
+                        y += 15;
+                        continue;
+                    }
+                    const lines = wrapText(tempCtx, para, width - 20);
+                    for (const line of lines) {
+                        tempCtx.fillText(line, 10, y + 22);
+                        y += 30;
+                    }
+                }
+                y += 15;
+            }
+
+            const finalHeight = Math.max(y, 1);
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = width;
+            finalCanvas.height = finalHeight;
+            const finalCtx = finalCanvas.getContext('2d');
+
+            finalCtx.fillStyle = "#FFFFFF";
+            finalCtx.fillRect(0, 0, width, finalHeight);
+            finalCtx.drawImage(tempCanvas, 0, 0);
+
+            return finalCanvas;
+        }
+
+        function wrapText(ctx, text, maxWidth) {
+            const lines = [];
+            let currentLine = '';
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const testLine = currentLine + char;
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && i > 0) {
+                    lines.push(currentLine);
+                    currentLine = char;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            if (currentLine) lines.push(currentLine);
+            return lines;
+        }
+
+        function convertCanvasToEscPos(sourceCanvas) {
+            const width = sourceCanvas.width;
+            const height = sourceCanvas.height;
+            const ctx = sourceCanvas.getContext('2d');
+            const imgData = ctx.getImageData(0, 0, width, height);
+            const pixels = imgData.data;
+
+            const widthBytes = Math.ceil(width / 8); // 48バイト
+            const imageBytes = new Uint8Array(widthBytes * height);
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = (y * width + x) * 4;
+                    const brightness = pixels[idx] * 0.299 + pixels[idx + 1] * 0.587 + pixels[idx + 2] * 0.114;
+                    if (brightness < 128) {
                         const byteIndex = y * widthBytes + Math.floor(x / 8);
                         const bitIndex = 7 - (x % 8);
                         imageBytes[byteIndex] |= (1 << bitIndex);
@@ -267,8 +281,8 @@
 
             const xL = widthBytes & 0xFF;
             const xH = (widthBytes >> 8) & 0xFF;
-            const yL = targetHeight & 0xFF;
-            const yH = (targetHeight >> 8) & 0xFF;
+            const yL = height & 0xFF;
+            const yH = (height >> 8) & 0xFF;
 
             const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
             const combined = new Uint8Array(header.length + imageBytes.length);
@@ -309,6 +323,9 @@
                 return;
             }
 
+            const title = document.getElementById('titleText').value;
+            const body = document.getElementById('bodyText').value;
+
             try {
                 log('Bluetoothデバイスをスキャン中...');
                 
@@ -339,16 +356,36 @@
                     throw new Error("書き込み可能なBluetoothキャラクタリスティックが見つかりませんでした。");
                 }
 
-                log('通信チャンネル接続成功。日本語レシート画像を生成中...');
+                log('通信チャンネル接続成功。印字データ構築中...');
 
-                const receiptCanvas = generateReceiptCanvas();
-                const rasterCmd = convertCanvasToEscPos(receiptCanvas);
+                const parts = [];
+                parts.push(new Uint8Array([0x1B, 0x40])); // プリンター初期化
 
-                const parts = [
-                    new Uint8Array([0x1B, 0x40]), // 初期化
-                    rasterCmd,                     // 日本語＋QRコードラスタ画像
-                    new Uint8Array([0x0A, 0x0A, 0x0A, 0x0A]) // 改行
-                ];
+                if (title.trim() !== "" || body.trim() !== "") {
+                    log('日本語テキストを画像データに変換中...');
+                    const textCanvas = renderTextToCanvas(title, body);
+                    const textCmd = convertCanvasToEscPos(textCanvas);
+                    parts.push(textCmd);
+                }
+
+                if (loadedImage) {
+                    log('QRコード画像をラスタコマンドに変換中...');
+                    const qrCanvas = document.createElement('canvas');
+                    const ctx = qrCanvas.getContext('2d');
+                    const targetWidth = 384;
+                    const scale = targetWidth / loadedImage.width;
+                    const targetHeight = Math.floor(loadedImage.height * scale);
+                    qrCanvas.width = targetWidth;
+                    qrCanvas.height = targetHeight;
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillRect(0, 0, targetWidth, targetHeight);
+                    ctx.drawImage(loadedImage, 0, 0, targetWidth, targetHeight);
+
+                    const qrCmd = convertCanvasToEscPos(qrCanvas);
+                    parts.push(qrCmd);
+                }
+
+                parts.push(new Uint8Array([0x0A, 0x0A, 0x0A, 0x0A])); // 改行紙送り
 
                 const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
                 const payload = new Uint8Array(totalLength);
@@ -358,9 +395,7 @@
                     offset += part.length;
                 }
 
-                log(`高速ストリーミング送信中 (合計: ${payload.length} バイト)...`);
-                
-                // 256バイトの安定した高速ストリーミング送信
+                log(`データを送信中 (合計: ${payload.length} バイト)...`);
                 const CHUNK_SIZE = 256;
                 for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
                     const chunk = payload.slice(i, i + CHUNK_SIZE);
@@ -371,7 +406,7 @@
                     }
                 }
 
-                log('日本語レシートの印刷完了！', 'success');
+                log('印刷命令の送信が完了しました！', 'success');
 
             } catch (error) {
                 console.error(error);
@@ -379,9 +414,8 @@
             }
         });
 
-        // 初期描画
-        updateLayoutPreview();
         checkEnvironment();
     </script>
+
 </body>
 </html>
