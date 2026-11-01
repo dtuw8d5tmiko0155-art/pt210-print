@@ -170,6 +170,7 @@ THANK YOU FOR YOUR VISIT!</textarea>
             ctx.putImageData(imgData, 0, 0);
         }
 
+        // ラスタ変換処理の改善（Y座標のループとビット演算の最適化）
         function convertImageToEscPos(img) {
             const canvas = document.getElementById('hiddenCanvas');
             const ctx = canvas.getContext('2d');
@@ -192,9 +193,10 @@ THANK YOU FOR YOUR VISIT!</textarea>
 
             for (let y = 0; y < targetHeight; y++) {
                 for (let x = 0; x < targetWidth; x++) {
-                    const idx = (y * targetWidth + x) * 4;
-                    const brightness = pixels[idx] * 0.299 + pixels[idx + 1] * 0.587 + pixels[idx + 2] * 0.114;
-                    if (brightness < 128) {
+                    const pIdx = (y * targetWidth + x) * 4;
+                    const brightness = pixels[pIdx] * 0.299 + pixels[pIdx + 1] * 0.587 + pixels[pIdx + 2] * 0.114;
+                    
+                    if (brightness < 128) { // 黒ピクセル
                         const byteIndex = y * widthBytes + Math.floor(x / 8);
                         const bitIndex = 7 - (x % 8);
                         imageBytes[byteIndex] |= (1 << bitIndex);
@@ -202,10 +204,10 @@ THANK YOU FOR YOUR VISIT!</textarea>
                 }
             }
 
-            const xL = widthBytes % 256;
-            const xH = Math.floor(widthBytes / 256);
-            const yL = targetHeight % 256;
-            const yH = Math.floor(targetHeight / 256);
+            const xL = widthBytes & 0xFF;
+            const xH = (widthBytes >> 8) & 0xFF;
+            const yL = targetHeight & 0xFF;
+            const yH = (targetHeight >> 8) & 0xFF;
 
             const header = new Uint8Array([0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH]);
             const combined = new Uint8Array(header.length + imageBytes.length);
@@ -308,7 +310,6 @@ THANK YOU FOR YOUR VISIT!</textarea>
                 }
 
                 log(`データを送信中 (合計: ${payload.length} バイト)...`);
-                // プリンターのバッファ溢れを防ぐため、チャンクサイズを20バイトに縮小し、ウェイトを30msに延長
                 const CHUNK_SIZE = 20;
                 for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
                     const chunk = payload.slice(i, i + CHUNK_SIZE);
