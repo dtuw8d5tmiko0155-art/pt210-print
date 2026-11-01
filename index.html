@@ -385,8 +385,8 @@
                     parts.push(qrCmd);
                 }
 
-                // ESC J 80 : 印刷終了直後に正確に10mm（80ドット）の底面余白をつけて送りを停止
-                parts.push(new Uint8Array([0x1B, 0x4A, 80]));
+                // ESC J 160 : 印刷終了直後に正確に20mm（160ドット）の底面余白をつけて停止
+                parts.push(new Uint8Array([0x1B, 0x4A, 160]));
 
                 const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
                 const payload = new Uint8Array(totalLength);
