@@ -308,9 +308,11 @@ THANK YOU FOR YOUR VISIT!</textarea>
                     offset += part.length;
                 }
 
-                log(`データを高速送信中 (合計: ${payload.length} バイト)...`);
-                // 高速化のためチャンクサイズを128バイトに拡大し、ウェイトを最小限(5ms)に短縮
-                const CHUNK_SIZE = 128;
+                log(`データを送信中 (合計: ${payload.length} バイト)...`);
+                
+                // 1ピクセルのスキップや白い線を防ぐため、大きめのチャンクサイズ(256バイト)で、
+                // 途切れのない滑らかな高速ストリーミング送信を行います
+                const CHUNK_SIZE = 256;
                 for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
                     const chunk = payload.slice(i, i + CHUNK_SIZE);
                     if (targetCharacteristic.properties.writeWithoutResponse) {
@@ -318,7 +320,7 @@ THANK YOU FOR YOUR VISIT!</textarea>
                     } else {
                         await targetCharacteristic.writeValue(chunk);
                     }
-                    await new Promise(resolve => setTimeout(resolve, 5));
+                    // 待ち時間を完全に撤廃し、最速かつ途切れのないデータ供給を実現
                 }
 
                 log('印刷命令の送信が完了しました！', 'success');
