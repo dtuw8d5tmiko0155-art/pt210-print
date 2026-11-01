@@ -385,8 +385,9 @@
                     parts.push(qrCmd);
                 }
 
-                // 上下の余白がちょうど同じくらいになるよう、適正な改行（紙送り）を送り出す
-                parts.push(new Uint8Array([0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A]));
+                // ESC J n コマンドで正確に 1cm (10mm = 80ドット) 分の紙送りを行う
+                // 0x1B, 0x4A, 0x50 (80ドット)
+                parts.push(new Uint8Array([0x1B, 0x4A, 80]));
 
                 const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
                 const payload = new Uint8Array(totalLength);
