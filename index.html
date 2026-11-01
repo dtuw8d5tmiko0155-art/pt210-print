@@ -170,7 +170,6 @@ THANK YOU FOR YOUR VISIT!</textarea>
             ctx.putImageData(imgData, 0, 0);
         }
 
-        // ラスタ変換処理の改善（Y座標のループとビット演算の最適化）
         function convertImageToEscPos(img) {
             const canvas = document.getElementById('hiddenCanvas');
             const ctx = canvas.getContext('2d');
@@ -196,7 +195,7 @@ THANK YOU FOR YOUR VISIT!</textarea>
                     const pIdx = (y * targetWidth + x) * 4;
                     const brightness = pixels[pIdx] * 0.299 + pixels[pIdx + 1] * 0.587 + pixels[pIdx + 2] * 0.114;
                     
-                    if (brightness < 128) { // 黒ピクセル
+                    if (brightness < 128) {
                         const byteIndex = y * widthBytes + Math.floor(x / 8);
                         const bitIndex = 7 - (x % 8);
                         imageBytes[byteIndex] |= (1 << bitIndex);
@@ -309,8 +308,9 @@ THANK YOU FOR YOUR VISIT!</textarea>
                     offset += part.length;
                 }
 
-                log(`データを送信中 (合計: ${payload.length} バイト)...`);
-                const CHUNK_SIZE = 20;
+                log(`データを高速送信中 (合計: ${payload.length} バイト)...`);
+                // 高速化のためチャンクサイズを128バイトに拡大し、ウェイトを最小限(5ms)に短縮
+                const CHUNK_SIZE = 128;
                 for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
                     const chunk = payload.slice(i, i + CHUNK_SIZE);
                     if (targetCharacteristic.properties.writeWithoutResponse) {
@@ -318,7 +318,7 @@ THANK YOU FOR YOUR VISIT!</textarea>
                     } else {
                         await targetCharacteristic.writeValue(chunk);
                     }
-                    await new Promise(resolve => setTimeout(resolve, 30));
+                    await new Promise(resolve => setTimeout(resolve, 5));
                 }
 
                 log('印刷命令の送信が完了しました！', 'success');
