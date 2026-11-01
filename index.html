@@ -385,8 +385,7 @@
                     parts.push(qrCmd);
                 }
 
-                // 印刷物のすぐ下にちょうど10mm (80ドット) の空白領域を追加して停止する
-                // ESC J n (n = 80ドット / 約10mm)
+                // ESC J 80 : 印刷終了直後に正確に10mm（80ドット）の底面余白をつけて送りを停止
                 parts.push(new Uint8Array([0x1B, 0x4A, 80]));
 
                 const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
