@@ -292,10 +292,10 @@
             return combined;
         }
 
-        // 20mm (160ドット) 分の白い空白のラスタデータを直接生成する関数
+        // 10mm (80ドット) 分の白い空白のラスタデータを生成する関数
         function createBottomMarginEscPos() {
             const width = 384;
-            const height = 160; // 20mm分 (20mm * 8ドット = 160ドット)
+            const height = 80; // 10mm分 (10mm * 8ドット = 80ドット)
             const widthBytes = 48; // 384 / 8
             const imageBytes = new Uint8Array(widthBytes * height); // すべて0 (白)
 
@@ -405,8 +405,8 @@
                     parts.push(qrCmd);
                 }
 
-                // 最後に必ず20mm (160ドット)分の白い空白画像データを結合して余白を確保する
-                log('20mmの余白データを追加中...');
+                // 最後に必ず10mm (80ドット)分の白い空白画像データを結合して余別を確保する
+                log('10mmの余白データを追加中...');
                 parts.push(createBottomMarginEscPos());
 
                 const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
